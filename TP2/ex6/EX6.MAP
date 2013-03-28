@@ -1,0 +1,12 @@
+
+ Start  Stop   Length Name               Class
+
+ 00000H 0007FH 00080H DATA               DATA
+ 00080H 00099H 0001AH DATA1              DATA
+ 000A0H 000B9H 0001AH DATA2              DATA
+ 000C0H 000D9H 0001AH DATA3              DATA
+ 000E0H 003FFH 00320H PILE               
+ 00400H 00464H 00065H CODE               
+
+Program entry point at 0040:0020
+
