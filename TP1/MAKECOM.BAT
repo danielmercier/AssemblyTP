@@ -1,0 +1,7 @@
+@ECHO OFF
+E:\TASM\BIN\TASM /m9 %1.asm
+IF NOT EXIST %1.obj GOTO FIN
+E:\TASM\BIN\TLINK /tdc %1.obj
+ERASE %1.map
+ERASE %1.obj
+:FIN

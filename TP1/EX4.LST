@@ -1,0 +1,317 @@
+Turbo Assembler	 Version 4.1	    03/17/13 19:44:08	    Page 1
+ex4.asm
+
+
+
+      1	0000			     code segment use16
+      2
+      3				     assume cs:code,ds:data,ss:pile
+      4
+      5				     ;Déclaration des procédures
+      6	0000			     cls proc near
+      7	0000  50 53 51 52		     push ax bx	cx dx
+      8	0004  B4 06			     MOV AH,06
+      9	0006  B0 00			     MOV     AL,00
+     10	0008  B7 07			     MOV     BH,07
+     11	000A  B9 0000			     MOV     CX,0000
+     12	000D  BA 184F			     MOV     DX,184FH
+     13	0010  CD 10			     INT     10H
+     14
+     15	0012  B4 00			     mov ah,00h
+     16	0014  B0 03			     mov al,03h
+     17	0016  CD 10			     int 10h
+     18	0018  58 5B 59 5A		     pop ax bx cx dx
+     19	001C  C3			     ret
+     20	001D			     cls endp
+     21
+     22	001D			     crlf proc near
+     23	001D  50 52			     push ax dx
+     24	001F  B4 02			     mov ah,02h
+     25	0021  B2 0A			     mov dl,10
+     26	0023  CD 21			     int 21h
+     27	0025  B2 0D			     mov dl,13
+     28	0027  CD 21			     int 21h
+     29	0029  58 5A			     pop ax dx
+     30	002B  C3			     ret
+     31	002C			     crlf endp
+     32
+     33	002C			     out_str proc near
+     34	002C  50			     push ax
+     35	002D  B4 09			     mov ah,09h
+     36	002F  CD 21			     int 21h
+     37	0031  58			     pop ax
+     38	0032  C3			     ret
+     39	0033			     out_str endp
+     40
+     41	0033			     out_char proc near
+     42	0033  B4 02			     mov ah,02h
+     43	0035  CD 21			     int 21h
+     44	0037  C3			     ret
+     45	0038			     out_char endp
+     46
+     47	0038			     in_str proc near
+     48	0038  50			     push ax
+     49	0039  B4 0C			     mov ah,0ch
+     50	003B  B0 0A			     mov al,0ah
+     51	003D  CD 21			     int 21h
+     52	003F  58			     pop ax
+     53	0040  C3			     ret
+     54	0041			     in_str endp
+     55
+     56				     ;Offset du	message	a copier dans di
+     57				     ;Offset du	resultat de la copie sans espace dans bi
+Turbo Assembler	 Version 4.1	    03/17/13 19:44:08	    Page 2
+ex4.asm
+
+
+
+     58	0041			     efface_espace proc	near
+     59	0041  50			     push ax
+     60	0042  33 C9			     xor cx,cx
+     61	0044  B8 0000r			     mov ax,offset buffer
+     62	0047  80 06 0000r 02		     add buffer,2
+     63	004C				     NF:
+     64	004C  80 3E 0000r 20			     cmp [buffer],' '
+     65	0051  74 06				     je	SPACE
+     66	0053  8C ED 90 90				     mov [di],[buffer]
+**Error** ex4.asm(66) Need register in expression
+     67	0057  47					     inc di
+     68	0058  41					     inc cx
+     69	0059					     space:
+     70	0059  FE 06 0000r			     inc buffer
+     71	005D  80 3E 0000r 24			     cmp [buffer],'$'
+     72	0062  75 E8			     jne NF
+     73	0064  47			     inc di
+     74	0065  C7 05 0024		     mov [di],'$'
+*Warning* ex4.asm(74) Argument needs type override
+     75	0069  89 06 0000r		     mov offset	buffer,ax
+**Error** ex4.asm(75) Illegal immediate
+     76	006D  2B F9			     sub di,cx
+     77	006F  58			     pop ax
+     78	0070  C3			     ret
+     79	0071			     efface_espace endp
+     80
+     81	0071			     print_ax proc near
+     82					     ;On divise	par dix	jusqu'a	atteindre zero on stock	tous les reste dans la pile
+     83	0071  50			     push ax
+     84	0072  33 C9			     xor cx,cx
+     85	0074  B2 0A			     mov dl,10
+     86	0076				     SUP0:
+     87	0076  F6 F2				     div dl
+     88	0078  8B D8				     mov bx,ax
+     89	007A  32 C0				     xor al,al
+     90	007C  8A C4				     mov al,ah
+     91	007E  32 E4				     xor ah,ah
+     92	0080  50				     push ax
+     93	0081  8B C3				     mov ax,bx
+     94	0083  32 E4				     xor ah,ah
+     95	0085  41				     inc cx
+     96	0086  3D 0000				     cmp ax,0
+     97	0089  75 EB			     jne SUP0
+     98	008B  B4 02			     mov ah,02h
+     99	008D				     LRESTE:
+    100	008D  5A				     pop dx
+    101	008E  33 DB				     xor bx,bx
+    102	0090  B3 30				     mov bl,'0'
+    103	0092  03 D3				     add dx,bx
+    104	0094  CD 21				     int 21h
+    105	0096  E2 F5			     loop LRESTE
+    106	0098  58			     pop ax
+    107	0099  C3			     ret
+    108	009A			     print_ax endp
+    109
+    110	009A			     getch proc	near
+    111	009A  B4 08			     mov ah,08h
+Turbo Assembler	 Version 4.1	    03/17/13 19:44:08	    Page 3
+ex4.asm
+
+
+
+    112	009C  CD 21			     int 21h
+    113	009E			     getch endp
+    114
+    115				     ;Compte le	nombre de caractères
+    116				     ;offset du	message	dans dx(premier	octet, nombre de caracteres)
+    117				     ;caractere	dans al
+    118				     ;resultat dans bx
+    119	009E			     count_char	proc near
+    120	009E  8B FA			     mov di,offset dx
+    121	00A0  33 C9			     xor cx,cx
+    122	00A2  8A 0D			     mov cl,[di]
+    123	00A4  33 DB			     xor bx,bx
+    124	00A6  47			     inc di
+    125	00A7				     PARCOURT:
+    126	00A7  38 05				     cmp [di],al
+    127	00A9  75 01				     jne NOTFOUND
+    128	00AB  43				     inc bx
+    129	00AC					     NOTFOUND:
+    130	00AC  47				     inc di
+    131	00AD  E2 F8			     loop PARCOURT
+    132	00AF  C3			     ret
+    133	00B0			     count_char	endp
+    134
+    135				     ;Début des	instructions
+    136	00B0			     debut :
+    137	00B0  B8 0000s			     mov ax,data
+    138	00B3  8E D8			     mov ds,ax
+    139
+    140	00B5  E8 FF48			     call cls
+    141	00B8  BA 0100r			     mov dx,offset mesEnter
+    142	00BB  E8 FF6E			     call out_str
+    143	00BE  BA 0000r			     mov dx,offset buffer
+    144	00C1  E8 FF74			     call in_str
+    145	00C4  E8 FF56			     call crlf
+    146	00C7  33 DB			     xor bx,bx
+    147	00C9  8A 1E 0001r		     mov bl,[buffer + 1]
+    148	00CD  C6 87 0002r 24 90		     mov [buffer + 2 + bx],'$'
+    149	00D3  80 06 0001r 01		     add [buffer + 1],1
+    150	00D8  BA 0002r			     mov dx,offset buffer + 2
+    151	00DB  E8 FF4E			     call out_str
+    152	00DE  E8 FF3C			     call crlf
+    153	00E1  BA 0138r			     mov dx,offset mesNbChar1
+    154	00E4  E8 FF45			     call out_str
+    155	00E7  33 C0			     xor ax,ax
+    156	00E9  A0 0001r			     mov al,[buffer + 1]
+    157	00EC  E8 FF82			     call print_ax
+    158	00EF  BA 0140r			     mov dx,offset mesNbChar2
+    159	00F2  E8 FF37			     call out_str
+    160
+    161	00F5				     COUNT:
+    162	00F5  BA 014Er			     mov dx, offset mesCharCount
+    163	00F8  E8 FF31			     call out_str
+    164	00FB  E8 FF9C			     call getch
+    165	00FE  3C 24			     cmp al,'$'
+    166	0100  74 24			     je	FCOUNT
+    167	0102  BA 0001r			     mov dx,offset buffer+1
+    168	0105  E8 FF96			     call count_char
+Turbo Assembler	 Version 4.1	    03/17/13 19:44:08	    Page 4
+ex4.asm
+
+
+
+    169	0108  BA 019Dr			     mov dx,offset mesSCount1
+    170	010B  E8 FF1E			     call out_str
+    171	010E  8A D0			     mov dl,al
+    172	0110  E8 FF20			     call out_char
+    173	0113  BA 01A9r			     mov dx,offset mesSCount2
+    174	0116  E8 FF13			     call out_str
+    175	0119  8B C3			     mov ax,bx
+    176	011B  E8 FF53			     call print_ax
+    177	011E  BA 01B9r			     mov dx,offset mesSCount3
+    178	0121  E8 FF08			     call out_str
+    179	0124  EB CF			     jmp COUNT
+    180	0126				     FCOUNT:
+    181
+    182	0126  E8 FED7			     call efface_space
+**Error** ex4.asm(182) Undefined symbol: EFFACE_SPACE
+    183	0129  E8 FF00			     call out_str
+    184	012C  B4 4C			     mov ah,4ch
+    185	012E  CD 21			     int 21h
+    186	0130			     code ends
+    187
+    188				     ;Déclaration des données
+    189	0000			     data segment use16
+    190	0000  FE FF*(??)		     buffer	      db 254,255 dup (?)
+    191	0100  56 65 75 69 6C 6C	65+	     mesEnter	  db "Veuillez entrer un message svp(253 caracteres max) : ",10,13,'$'
+    192	      7A 20 65 6E 74 72	65+
+    193	      72 20 75 6E 20 6D	65+
+    194	      73 73 61 67 65 20	73+
+    195	      76 70 28 32 35 33	20+
+    196	      63 61 72 61 63 74	65+
+    197	      72 65 73 20 6D 61	78+
+    198	      29 20 3A 20 0A 0D	24
+    199	0138  49 6C 20 79 20 61	20+	     mesNbChar1	      db "Il y a ",'$'
+    200	      24
+    201	0140  20 63 61 72 61 63	74+	     mesNbChar2	      db " caracteres",10,13,'$'
+    202	      65 72 65 73 0A 0D	24
+    203	014E  45 6E 74 72 65 7A	20+	     mesCharCount db "Entrez un	char pour compter sont nombre d'occurence, dollar pour	    +
+    204	      75 6E 20 63 68 61	72+  arreter  :	",10,13,'$'
+    205	      20 70 6F 75 72 20	63+
+    206	      6F 6D 70 74 65 72	20+
+    207	      73 6F 6E 74 20 6E	6F+
+    208	      6D 62 72 65 20 64	27+
+    209	      6F 63 63 75 72 65	6E+
+    210	      63 65 2C 20 64 6F	6C+
+    211	      6C 61 72 20 70 6F	75+
+    212	      72 20 61 72 72 65	74+
+    213	      65 72 20 20 3A 20	0A+
+    214	      0D 24
+    215	019D  4C 61 20 6C 65 74	74+	     mesSCount1	  db "La lettre	<",'$'
+    216	      72 65 20 3C 24
+    217	01A9  3E 20 61 20 65 74	65+	     mesSCount2	  db ">	a ete trouve ",'$'
+    218	      20 74 72 6F 75 76	65+
+    219	      20 24
+    220	01B9  20 66 6F 69 73 0A	0D+	     mesSCount3	  db " fois",10,13,'$'
+    221	      24
+    222	01C1			     data ends
+    223
+    224				     ;Déclaration de la	pile
+Turbo Assembler	 Version 4.1	    03/17/13 19:44:08	    Page 5
+ex4.asm
+
+
+
+    225	0000			     pile segment stack
+    226	0000  0100*(??)			     remplissage db 256	dup (?)
+    227	0100			     pile ends
+    228
+    229				     end debut
+Turbo Assembler	 Version 4.1	    03/17/13 19:44:08	    Page 6
+Symbol Table
+
+
+
+
+Symbol Name		Type   Value			   Cref	(defined at #)
+
+??DATE			Text   "03/17/13"
+??FILENAME		Text   "ex4	"
+??TIME			Text   "19:44:08"
+??VERSION		Number 040A
+@CPU			Text   0101H
+@CURSEG			Text   PILE			   #1  #189  #225
+@FILENAME		Text   EX4
+@WORDSIZE		Text   2			   #1  #189  #225
+BUFFER			Byte   DATA:0000		   61  62  64  66  70  71  75  143  147	 148  149  150	156  167  #190
+CLS			Near   CODE:0000		   #6  140
+COUNT			Near   CODE:00F5		   #161	 179
+COUNT_CHAR		Near   CODE:009E		   #119	 168
+CRLF			Near   CODE:001D		   #22	145  152
+DEBUT			Near   CODE:00B0		   #136	 229
+EFFACE_ESPACE		Near   CODE:0041		   #58
+FCOUNT			Near   CODE:0126		   166	#180
+GETCH			Near   CODE:009A		   #110	 164
+IN_STR			Near   CODE:0038		   #47	144
+LRESTE			Near   CODE:008D		   #99	105
+MESCHARCOUNT		Byte   DATA:014E		   162	#203
+MESENTER		Byte   DATA:0100		   141	#191
+MESNBCHAR1		Byte   DATA:0138		   153	#199
+MESNBCHAR2		Byte   DATA:0140		   158	#201
+MESSCOUNT1		Byte   DATA:019D		   169	#215
+MESSCOUNT2		Byte   DATA:01A9		   173	#217
+MESSCOUNT3		Byte   DATA:01B9		   177	#220
+NF			Near   CODE:004C		   #63	72
+NOTFOUND		Near   CODE:00AC		   127	#129
+OUT_CHAR		Near   CODE:0033		   #41	172
+OUT_STR			Near   CODE:002C		   #33	142  151  154  159  163	 170  174  178	183
+PARCOURT		Near   CODE:00A7		   #125	 131
+PRINT_AX		Near   CODE:0071		   #81	157  176
+REMPLISSAGE		Byte   PILE:0000		   #226
+SPACE			Near   CODE:0059		   65  #69
+SUP0			Near   CODE:0076		   #86	97
+
+Groups & Segments	Bit Size Align	Combine	Class	   Cref	(defined at #)
+
+CODE			16  0130 Para	none		   #1  3
+DATA			16  01C1 Para	none		   3  137  #189
+PILE			16  0100 Para	Stack		   3  #225
+Turbo Assembler	 Version 4.1	    03/17/13 19:44:08	    Page 7
+Error Summary
+
+
+
+**Error** ex4.asm(66) Need register in expression
+*Warning* ex4.asm(74) Argument needs type override
+**Error** ex4.asm(75) Illegal immediate
+**Error** ex4.asm(182) Undefined symbol: EFFACE_SPACE
+
