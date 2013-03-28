@@ -1,190 +1,363 @@
-Turbo Assembler	 Version 4.1	    03/27/13 18:47:33	    Page 1
+Turbo Assembler	 Version 4.1	    03/28/13 11:11:40	    Page 1
 ex5.ASM
 
 
 
       1				     ;Declare data
       2	0000			     data segment use16
-      3	0000  0A 0D 4E 6F 74 20	68+	     mesError  db  10,13,"Not hexa!$",10,13
-      4	      65 78 61 21 24 0A	0D
-      5	000E			     data ends
-      6				     ;
-      7				     ;declare pile
-      8	0000			     pile segment stack
-      9	0000  0190*(????)		     remplissage dw 400	dup(?)
-     10	0320			     pile ends
-     11				     ;
-     12				     ;Declare code
-     13	0000			     code segment use16
-     14
-     15				     assume cs:code,ds:data,ss:pile,es:data
-     16				     ;Procedure
-     17				     ;
-     18				     ;Applique le complement a 2 à ax
-     19	0000			     complement_ax proc	near
-     20	0000  D1 C0			     rol ax,1
-     21	0002  73 07			     jnc sortir
-     22	0004  D1 C8			     ror ax,1
-     23	0006  2D 0001			     sub ax,1
-     24	0009  F7 D0			     not ax
-     25	000B				     sortir:
-     26	000B  C3			     ret
-     27	000C			     complement_ax endp
-     28	000C			     hex_digit proc near
-     29	000C  52 50			     push dx ax
-     30	000E  80 C2 30			     add dl,'0'
-     31	0011  80 FA 39			     cmp dl,'9'
-     32	0014  76 03			     jbe showdigit
-     33	0016  80 C2 07			     add dl,7
-     34	0019				     showdigit:
-     35	0019  B4 02			     mov ah,02h
-     36	001B  CD 21			     int 21h
-     37	001D  58 5A			     pop ax dx
-     38	001F  C3			     ret
-     39	0020			     hex_digit endp
-     40				     ;
-     41	0020			     print_al proc near
-     42	0020  52			     push dx
-     43	0021  8A D0			     mov dl,al
-     44	0023  D0 EA D0 EA D0 EA	D0+	     shr dl,4
-     45	      EA
-     46	002B  E8 FFDE			     call hex_digit
-     47	002E  8A D0			     mov dl,al
-     48	0030  80 E2 0F			     and dl,0fh
-     49	0033  E8 FFD6			     call hex_digit
-     50	0036  5A			     pop dx
-     51	0037  C3			     ret
-     52	0038			     print_al endp
-     53
-     54	0038			     print_ax proc near
-     55	0038  50			     push ax
-     56	0039  E8 FFC4			     call complement_ax
-     57	003C  73 07			     jnc passigne
-Turbo Assembler	 Version 4.1	    03/27/13 18:47:33	    Page 2
+      3	0000  0A 0D 4E 6F 74 20	68+	     mesError  db  10,13,"Not hexa!",10,13,'$'
+      4	      65 78 61 21 0A 0D	24
+      5	000E  45 6E 74 72 65 7A	20+	     MesEnterA db  "Entrez A : ",'$'
+      6	      41 20 3A 20 24
+      7	001A  45 6E 74 72 65 7A	20+	     MesEnterB db  "Entrez B : ",'$'
+      8	      42 20 3A 20 24
+      9	0026  41 20 3D 20 24		     mesA      db  "A =	$"
+     10	002B  20 20 20 20 20 20	20+	     mesB      db  "	      B	= ",'$'
+     11	      20 20 20 42 20 3D	20+
+     12	      24
+     13	003A  41 20 2B 20 42 20	3D+	     mesAplB   db  "A +	B = $"
+     14	      20 24
+     15	0043  41 20 2D 20 42 20	3D+	     mesAmoiB	db  "A - B = $"
+     16	      20 24
+     17	004C  41 20 2A 20 42 20	3D+	     mesAfoiB	db  "A * B = $"
+     18	      20 24
+     19	0055  41 20 2F 20 42 20	3D+	     mesAdivB	db  "A / B = $"
+     20	      20 24
+     21	005E  20 52 65 73 74 65	3D+	     mesReste1	 db  " Reste= $"
+     22	      20 24
+     23	0067  20 52 65 73 74 65	3D+	     mesReste2	 db  " Reste= $"
+     24	      20 24
+     25	0070  09 09 09 20 20 20	20+	     mesBmoiA	db  "				     B - A = $"
+     26	      20 20 20 20 42 20	2D+
+     27	      20 41 20 3D 20 24
+     28	0084  42 20 2F 20 41 20	3D+	     mesBdivA	db  "B / A = $"
+     29	      20 24
+     30	008D				     data ends
+     31				     ;
+     32				     ;declare pile
+     33	0000			     pile segment stack
+     34	0000  0190*(????)		     remplissage dw 400	dup(?)
+     35	0320			     pile ends
+     36				     ;
+     37				     ;Declare code
+     38	0000			     code segment use16
+     39
+     40				     assume cs:code,ds:data,ss:pile,es:data
+     41				     ;Procedure
+     42				     ;
+     43				     ;Applique le complement a 2 à ax
+     44	0000			     complement_ax proc	near
+     45	0000  D1 C0			     rol ax,1
+     46	0002  73 0B			     jnc sortir
+     47	0004  D1 C8			     ror ax,1
+     48	0006  2D 0001			     sub ax,1
+     49	0009  F7 D0			     not ax
+     50	000B  F9			     stc
+     51	000C  EB 03 90			     jmp fincom
+     52	000F				     sortir:
+     53	000F  D1 C8			     ror ax,1
+     54	0011				     fincom:
+     55	0011  C3			     ret
+     56	0012			     complement_ax endp
+     57	0012			     complement_al proc	near
+Turbo Assembler	 Version 4.1	    03/28/13 11:11:40	    Page 2
 ex5.ASM
 
 
 
-     58	003E  50			     push ax
-     59	003F  B0 2D			     mov al,'-'
-     60	0041  E8 0041			     call co
-     61	0044  58			     pop ax
-     62	0045				     passigne:
-     63	0045  D1 C8 D1 C8 D1 C8	D1+	     ror ax,8
-     64	      C8 D1 C8 D1 C8 D1	C8+
-     65	      D1 C8
-     66	0055  E8 FFC8			     call print_al
-     67	0058  D1 C8 D1 C8 D1 C8	D1+	     ror ax,8
-     68	      C8 D1 C8 D1 C8 D1	C8+
-     69	      D1 C8
-     70	0068  E8 FFB5			     call print_al
-     71	006B  C3			     ret
-     72	006C  58			     pop ax
-     73	006D			     print_ax endp
-     74
-     75	006D			     conv_hex proc near
-     76	006D  2C 30			     sub al,'0'
-     77	006F  72 0E			     jb	hret
-     78	0071  3C 0A			     cmp al,10
-     79	0073  F5			     cmc
-     80	0074  73 09			     jnb hret
-     81	0076  2C 07			     sub al,7
-     82	0078  3C 0A			     cmp al,10
-     83	007A  72 03			     jb	hret
-     84	007C  3C 10			     cmp al,10h
-     85	007E  F5			     cmc
-     86	007F				     hret:
-     87	007F  C3			     ret
-     88	0080			     conv_hex endp
-     89	0080			     ci	proc near
-     90	0080  B4 01			     mov ah,01h
-     91	0082  CD 21			     int 21h
-     92	0084  C3			     ret
-     93	0085			     ci	endp
-     94	0085			     co	proc near
-     95	0085  50 52			     push ax dx
-     96	0087  8A D0			     mov dl,al
-     97	0089  B4 02			     mov ah,02h
-     98	008B  CD 21			     int 21h
-     99	008D  5A 58			     pop dx ax
-    100	008F  C3			     ret
-    101	0090			     co	endp
-    102	0090			     crlf proc near
-    103	0090  50 52			     push ax dx
-    104	0092  B4 02			     mov ah,02h
-    105	0094  B2 0A			     mov dl,10
-    106	0096  CD 21			     int 21h
-    107	0098  B2 0D			     mov dl,13
-    108	009A  CD 21			     int 21h
-    109	009C  5A 58			     pop dx ax
-    110	009E  C3			     ret
-    111	009F			     crlf endp
-    112	009F			     ci_wordhex	proc near
-    113	009F  E8 FFDE			     call ci
-    114	00A2  E8 FFC8			     call conv_hex
-Turbo Assembler	 Version 4.1	    03/27/13 18:47:33	    Page 3
+     58	0012  D0 C0			     rol al,1
+     59	0014  73 0A			     jnc sortiral
+     60	0016  D0 C8			     ror al,1
+     61	0018  2C 01			     sub al,1
+     62	001A  F6 D0			     not al
+     63	001C  F9			     stc
+     64	001D  EB 03 90			     jmp fincomal
+     65	0020				     sortiral:
+     66	0020  D1 C8			     ror ax,1
+     67	0022				     fincomal:
+     68	0022  C3			     ret
+     69	0023			     complement_al endp
+     70	0023			     hex_digit proc near
+     71	0023  52 50			     push dx ax
+     72	0025  80 C2 30			     add dl,'0'
+     73	0028  80 FA 39			     cmp dl,'9'
+     74	002B  76 03			     jbe showdigit
+     75	002D  80 C2 07			     add dl,7
+     76	0030				     showdigit:
+     77	0030  B4 02			     mov ah,02h
+     78	0032  CD 21			     int 21h
+     79	0034  58 5A			     pop ax dx
+     80	0036  C3			     ret
+     81	0037			     hex_digit endp
+     82				     ;
+     83	0037			     print_al proc near
+     84	0037  52			     push dx
+     85	0038  8A D0			     mov dl,al
+     86	003A  D0 EA D0 EA D0 EA	D0+	     shr dl,4
+     87	      EA
+     88	0042  E8 FFDE			     call hex_digit
+     89	0045  8A D0			     mov dl,al
+     90	0047  80 E2 0F			     and dl,0fh
+     91	004A  E8 FFD6			     call hex_digit
+     92	004D  5A			     pop dx
+     93	004E  C3			     ret
+     94	004F			     print_al endp
+     95
+     96	004F			     print_ax proc near
+     97	004F  50			     push ax
+     98	0050  E8 FFAD			     call complement_ax
+     99	0053  73 07			     jnc passigne
+    100	0055  50			     push ax
+    101	0056  B0 2D			     mov al,'-'
+    102	0058  E8 0041			     call co
+    103	005B  58			     pop ax
+    104	005C				     passigne:
+    105	005C  D1 C8 D1 C8 D1 C8	D1+	     ror ax,8
+    106	      C8 D1 C8 D1 C8 D1	C8+
+    107	      D1 C8
+    108	006C  E8 FFC8			     call print_al
+    109	006F  D1 C8 D1 C8 D1 C8	D1+	     ror ax,8
+    110	      C8 D1 C8 D1 C8 D1	C8+
+    111	      D1 C8
+    112	007F  E8 FFB5			     call print_al
+    113	0082  58			     pop ax
+    114	0083  C3			     ret
+Turbo Assembler	 Version 4.1	    03/28/13 11:11:40	    Page 3
 ex5.ASM
 
 
 
-    115	00A5  72 37			     jc	fault
-    116	00A7  D0 E0 D0 E0 D0 E0	D0+	     shl al,4
-    117	      E0
-    118	00AF  8A D8			     mov bl,al
-    119	00B1  E8 FFCC			     call ci
-    120	00B4  E8 FFB6			     call conv_hex
-    121	00B7  72 25			     jc	fault
-    122	00B9  0A C3			     or	al,bl
-    123	00BB  8A F8			     mov bh,al
-    124	00BD  E8 FFC0			     call ci
-    125	00C0  E8 FFAA			     call conv_hex
-    126	00C3  72 19			     jc	fault
-    127	00C5  D0 E0 D0 E0 D0 E0	D0+	     shl al,4
-    128	      E0
-    129	00CD  8A D8			     mov bl,al
-    130	00CF  E8 FFAE			     call ci
-    131	00D2  E8 FF98			     call conv_hex
-    132	00D5  72 07			     jc	fault
-    133	00D7  0A C3			     or	al,bl
-    134	00D9  8A E7			     mov ah,bh
-    135	00DB  EB 08 90			     jmp ishexa
-    136	00DE				     fault:
-    137	00DE  BA 0000r			     lea dx,mesError
-    138	00E1  B4 09			     mov ah,09h
-    139	00E3  CD 21			     int 21h
-    140	00E5				     ishexa:
-    141	00E5  C3			     ret
-    142	00E6			     ci_wordhex	endp
-    143				     ;
-    144				     ;Fin procedure
-    145	00E6			     debut:
-    146	00E6  B8 0000s			     mov ax, data
-    147	00E9  8E D8			     mov ds,ax
-    148
-    149					     ;wchar:
-    150					     ;	     call ci
-    151					     ;	     cmp al,'$'
-    152					     ;	     je	break
-    153					     ;	     call conv_hex ;convertit al en hexa si le code ascii correspond
-    154					     ;	     call crlf
-    155					     ;	     jc	notprint
-    156					     ;	     shl al,4
-    157					     ;	     call print_al
-    158					     ;	     call crlf
-    159					     ;	     notprint:
-    160					     ;jmp wchar
-    161					     ;break:
-    162					     ;call ci_wordhex
-    163					     ;call crlf
-    164	00EB  B8 FFE2			     mov ax,-30
-    165	00EE  E8 FF47			     call print_ax
-    166					     ;Quitter
-    167	00F1  B4 4C			     mov ah,4ch
-    168	00F3  CD 21			     int 21h
-    169
-    170	00F5			     code ends
-    171					      end debut
-Turbo Assembler	 Version 4.1	    03/27/13 18:47:33	    Page 4
+    115	0084			     print_ax endp
+    116
+    117	0084			     conv_hex proc near
+    118	0084  2C 30			     sub al,'0'
+    119	0086  72 0E			     jb	hret
+    120	0088  3C 0A			     cmp al,10
+    121	008A  F5			     cmc
+    122	008B  73 09			     jnb hret
+    123	008D  2C 07			     sub al,7
+    124	008F  3C 0A			     cmp al,10
+    125	0091  72 03			     jb	hret
+    126	0093  3C 10			     cmp al,10h
+    127	0095  F5			     cmc
+    128	0096				     hret:
+    129	0096  C3			     ret
+    130	0097			     conv_hex endp
+    131	0097			     ci	proc near
+    132	0097  B4 01			     mov ah,01h
+    133	0099  CD 21			     int 21h
+    134	009B  C3			     ret
+    135	009C			     ci	endp
+    136	009C			     co	proc near
+    137	009C  50 52			     push ax dx
+    138	009E  8A D0			     mov dl,al
+    139	00A0  B4 02			     mov ah,02h
+    140	00A2  CD 21			     int 21h
+    141	00A4  5A 58			     pop dx ax
+    142	00A6  C3			     ret
+    143	00A7			     co	endp
+    144	00A7			     crlf proc near
+    145	00A7  50 52			     push ax dx
+    146	00A9  B4 02			     mov ah,02h
+    147	00AB  B2 0A			     mov dl,10
+    148	00AD  CD 21			     int 21h
+    149	00AF  B2 0D			     mov dl,13
+    150	00B1  CD 21			     int 21h
+    151	00B3  5A 58			     pop dx ax
+    152	00B5  C3			     ret
+    153	00B6			     crlf endp
+    154	00B6			     ci_wordhex	proc near
+    155	00B6  53			     push bx
+    156	00B7  E8 FFDD			     call ci
+    157	00BA  E8 FFC7			     call conv_hex
+    158	00BD  72 37			     jc	fault
+    159	00BF  D0 E0 D0 E0 D0 E0	D0+	     shl al,4
+    160	      E0
+    161	00C7  8A D8			     mov bl,al
+    162	00C9  E8 FFCB			     call ci
+    163	00CC  E8 FFB5			     call conv_hex
+    164	00CF  72 25			     jc	fault
+    165	00D1  0A C3			     or	al,bl
+    166	00D3  8A F8			     mov bh,al
+    167	00D5  E8 FFBF			     call ci
+    168	00D8  E8 FFA9			     call conv_hex
+    169	00DB  72 19			     jc	fault
+    170	00DD  D0 E0 D0 E0 D0 E0	D0+	     shl al,4
+    171	      E0
+Turbo Assembler	 Version 4.1	    03/28/13 11:11:40	    Page 4
+ex5.ASM
+
+
+
+    172	00E5  8A D8			     mov bl,al
+    173	00E7  E8 FFAD			     call ci
+    174	00EA  E8 FF97			     call conv_hex
+    175	00ED  72 07			     jc	fault
+    176	00EF  0A C3			     or	al,bl
+    177	00F1  8A E7			     mov ah,bh
+    178	00F3  EB 08 90			     jmp ishexa
+    179	00F6				     fault:
+    180	00F6  BA 0000r			     lea dx,mesError
+    181	00F9  B4 09			     mov ah,09h
+    182	00FB  CD 21			     int 21h
+    183	00FD				     ishexa:
+    184	00FD  5B			     pop bx
+    185	00FE  C3			     ret
+    186	00FF			     ci_wordhex	endp
+    187	00FF			     so	proc near
+    188	00FF  50			     push ax
+    189	0100  B4 09			     mov ah,09h
+    190	0102  CD 21			     int 21h
+    191	0104  58			     pop ax
+    192	0105  C3			     ret
+    193	0106			     so	endp
+    194				     ;
+    195				     ;Fin procedure
+    196	0106			     debut:
+    197	0106  B8 0000s			     mov ax, data
+    198	0109  8E D8			     mov ds,ax
+    199
+    200					     ;wchar:
+    201					     ;	     call ci
+    202					     ;	     cmp al,'$'
+    203					     ;	     je	break
+    204					     ;	     call conv_hex ;convertit al en hexa si le code ascii correspond
+    205					     ;	     call crlf
+    206					     ;	     jc	notprint
+    207					     ;	     shl al,4
+    208					     ;	     call print_al
+    209					     ;	     call crlf
+    210					     ;	     notprint:
+    211					     ;jmp wchar
+    212					     ;break:
+    213	010B  BA 000Er			     lea dx,mesentera
+    214	010E  E8 FFEE			     call so
+    215	0111  E8 FFA2			     call ci_wordhex
+    216	0114  E8 FF90			     call crlf
+    217	0117  8B D8			     mov bx,ax
+    218	0119  BA 001Ar			     lea dx,mesenterb
+    219	011C  E8 FFE0			     call so
+    220	011F  E8 FF94			     call ci_wordhex
+    221	0122  E8 FF82			     call crlf
+    222	0125  50 53			     push ax bx
+    223	0127  58 5B			     pop ax bx
+    224	0129  BA 0026r			     lea dx,mesA
+    225	012C  E8 FFD0			     call so
+    226	012F  E8 FF1D			     call print_ax
+    227	0132  BA 002Br			     lea dx,mesB
+    228	0135  E8 FFC7			     call so
+Turbo Assembler	 Version 4.1	    03/28/13 11:11:40	    Page 5
+ex5.ASM
+
+
+
+    229	0138  50			     push ax
+    230	0139  8B C3			     mov ax,bx
+    231	013B  E8 FF11			     call print_ax
+    232	013E  58			     pop ax
+    233	013F  E8 FF65			     call crlf
+    234	0142  BA 003Ar			     lea dx,mesAplB
+    235	0145  E8 FFB7			     call so
+    236	0148  50			     push ax
+    237	0149  03 C3			     add ax,bx
+    238	014B  E8 FF01			     call print_ax
+    239	014E  58			     pop ax
+    240	014F  E8 FF55			     call crlf
+    241					     ;
+    242	0152  BA 0043r			     lea dx,mesAmoiB
+    243	0155  E8 FFA7			     call so
+    244	0158  50			     push ax
+    245	0159  2B C3			     sub ax,bx
+    246	015B  E8 FEF1			     call print_ax
+    247	015E  58			     pop ax
+    248					     ;
+    249	015F  BA 0070r			     lea dx,mesBmoiA
+    250	0162  E8 FF9A			     call so
+    251	0165  50 53			     push ax bx
+    252	0167  2B D8			     sub bx,ax
+    253	0169  8B C3			     mov ax,bx
+    254	016B  E8 FEE1			     call print_ax
+    255	016E  5B 58			     pop bx ax
+    256	0170  E8 FF34			     call crlf
+    257					     ;
+    258	0173  BA 004Cr			     lea dx,mesAfoiB
+    259	0176  E8 FF86			     call so
+    260	0179  50			     push ax
+    261	017A  F7 E3			     mul bx
+    262	017C  50			     push ax
+    263	017D  8B C2			     mov ax,dx
+    264	017F  E8 FECD			     call print_ax
+    265	0182  58			     pop ax
+    266	0183  E8 FEC9			     call print_ax
+    267	0186  58			     pop ax
+    268	0187  E8 FF1D			     call crlf
+    269					     ;
+    270	018A  BA 0055r			     lea dx,mesAdivB
+    271	018D  E8 FF6F			     call so
+    272	0190  50			     push ax
+    273	0191  33 D2			     xor dx,dx
+    274	0193  F7 F3			     div bx
+    275	0195  E8 FEB7			     call print_ax
+    276	0198  52			     push dx
+    277	0199  E8 FF0B			     call crlf
+    278	019C  BA 005Er			     lea dx,mesReste1
+    279	019F  E8 FF5D			     call so
+    280	01A2  5A			     pop dx
+    281	01A3  8B C2			     mov ax,dx
+    282	01A5  E8 FEA7			     call print_ax
+    283	01A8  58			     pop ax
+    284	01A9  E8 FEFB			     call crlf
+    285					     ;Positionnement du	curseur
+Turbo Assembler	 Version 4.1	    03/28/13 11:11:40	    Page 6
+ex5.ASM
+
+
+
+    286	01AC  50 53 51 52		     push ax bx	cx dx
+    287	01B0  B4 03			     mov ah,03h
+    288	01B2  B7 00			     mov bh,0
+    289	01B4  CD 10			     int 10h
+    290	01B6  B4 02			     mov ah,02h
+    291	01B8  80 EE 02			     sub dh,2
+    292	01BB  80 C2 28			     add dl,40
+    293	01BE  CD 10			     int 10h
+    294	01C0  5A 59 5B 58		     pop dx cx bx ax
+    295					     ;
+    296	01C4  BA 0084r			     lea dx,mesBdivA
+    297	01C7  E8 FF35			     call so
+    298	01CA  50 53			     push ax bx
+    299	01CC  33 D2			     xor dx,dx
+    300	01CE  50 53			     push ax bx
+    301	01D0  58 5B			     pop ax bx
+    302	01D2  F7 F3			     div bx
+    303	01D4  E8 FE78			     call print_ax
+    304	01D7  52			     push dx
+    305					     ;Positionnement du	curseur
+    306	01D8  50 53 51 52		     push ax bx	cx dx
+    307	01DC  B4 03			     mov ah,03h
+    308	01DE  B7 00			     mov bh,0
+    309	01E0  CD 10			     int 10h
+    310	01E2  B4 02			     mov ah,02h
+    311	01E4  80 C6 01			     add dh,1
+    312	01E7  80 EA 0C			     sub dl,12
+    313	01EA  CD 10			     int 10h
+    314	01EC  5A 59 5B 58		     pop dx cx bx ax
+    315					     ;
+    316	01F0  BA 0067r			     lea dx,mesReste2
+    317	01F3  E8 FF09			     call so
+    318	01F6  5A			     pop dx
+    319	01F7  8B C2			     mov ax,dx
+    320	01F9  E8 FE53			     call print_ax
+    321	01FC  5B 58			     pop bx ax
+    322	01FE  E8 FEA6			     call crlf
+    323
+    324					     ;Quitter
+    325	0201  B4 4C			     mov ah,4ch
+    326	0203  CD 21			     int 21h
+    327
+    328	0205			     code ends
+    329					      end debut
+Turbo Assembler	 Version 4.1	    03/28/13 11:11:40	    Page 7
 Symbol Table
 
 
@@ -192,36 +365,53 @@ Symbol Table
 
 Symbol Name		Type   Value			   Cref	(defined at #)
 
-??DATE			Text   "03/27/13"
+??DATE			Text   "03/28/13"
 ??FILENAME		Text   "ex5	"
-??TIME			Text   "18:47:33"
+??TIME			Text   "11:11:40"
 ??VERSION		Number 040A
 @CPU			Text   0101H
-@CURSEG			Text   CODE			   #2  #8  #13
+@CURSEG			Text   CODE			   #2  #33  #38
 @FILENAME		Text   EX5
-@WORDSIZE		Text   2			   #2  #8  #13
-CI			Near   CODE:0080		   #89	113  119  124  130
-CI_WORDHEX		Near   CODE:009F		   #112
-CO			Near   CODE:0085		   60  #94
-COMPLEMENT_AX		Near   CODE:0000		   #19	56
-CONV_HEX		Near   CODE:006D		   #75	114  120  125  131
-CRLF			Near   CODE:0090		   #102
-DEBUT			Near   CODE:00E6		   #145	 171
-FAULT			Near   CODE:00DE		   115	121  126  132  #136
-HEX_DIGIT		Near   CODE:000C		   #28	46  49
-HRET			Near   CODE:007F		   77  80  83  #86
-ISHEXA			Near   CODE:00E5		   135	#140
-MESERROR		Byte   DATA:0000		   #3  137
-PASSIGNE		Near   CODE:0045		   57  #62
-PRINT_AL		Near   CODE:0020		   #41	66  70
-PRINT_AX		Near   CODE:0038		   #54	165
-REMPLISSAGE		Word   PILE:0000		   #9
-SHOWDIGIT		Near   CODE:0019		   32  #34
-SORTIR			Near   CODE:000B		   21  #25
+@WORDSIZE		Text   2			   #2  #33  #38
+CI			Near   CODE:0097		   #131	 156  162  167	173
+CI_WORDHEX		Near   CODE:00B6		   #154	 215  220
+CO			Near   CODE:009C		   102	#136
+COMPLEMENT_AL		Near   CODE:0012		   #57
+COMPLEMENT_AX		Near   CODE:0000		   #44	98
+CONV_HEX		Near   CODE:0084		   #117	 157  163  168	174
+CRLF			Near   CODE:00A7		   #144	 216  221  233	240  256  268  277  284	 322
+DEBUT			Near   CODE:0106		   #196	 329
+FAULT			Near   CODE:00F6		   158	164  169  175  #179
+FINCOM			Near   CODE:0011		   51  #54
+FINCOMAL		Near   CODE:0022		   64  #67
+HEX_DIGIT		Near   CODE:0023		   #70	88  91
+HRET			Near   CODE:0096		   119	122  125  #128
+ISHEXA			Near   CODE:00FD		   178	#183
+MESA			Byte   DATA:0026		   #9  224
+MESADIVB		Byte   DATA:0055		   #19	270
+MESAFOIB		Byte   DATA:004C		   #17	258
+MESAMOIB		Byte   DATA:0043		   #15	242
+MESAPLB			Byte   DATA:003A		   #13	234
+MESB			Byte   DATA:002B		   #10	227
+MESBDIVA		Byte   DATA:0084		   #28	296
+MESBMOIA		Byte   DATA:0070		   #25	249
+MESENTERA		Byte   DATA:000E		   #5  213
+MESENTERB		Byte   DATA:001A		   #7  218
+MESERROR		Byte   DATA:0000		   #3  180
+MESRESTE1		Byte   DATA:005E		   #21	278
+MESRESTE2		Byte   DATA:0067		   #23	316
+PASSIGNE		Near   CODE:005C		   99  #104
+PRINT_AL		Near   CODE:0037		   #83	108  112
+PRINT_AX		Near   CODE:004F		   #96	226  231  238  246  254	 264  266  275	282  303  320
+REMPLISSAGE		Word   PILE:0000		   #34
+SHOWDIGIT		Near   CODE:0030		   74  #76
+SO			Near   CODE:00FF		   #187	 214  219  225	228  235  243  250  259	 271  279  297	317
+SORTIR			Near   CODE:000F		   46  #52
+SORTIRAL		Near   CODE:0020		   59  #65
 
 Groups & Segments	Bit Size Align	Combine	Class	   Cref	(defined at #)
 
-CODE			16  00F5 Para	none		   #13	15
-DATA			16  000E Para	none		   #2  15  15  146
-PILE			16  0320 Para	Stack		   #8  15
+CODE			16  0205 Para	none		   #38	40
+DATA			16  008D Para	none		   #2  40  40  197
+PILE			16  0320 Para	Stack		   #33	40
 

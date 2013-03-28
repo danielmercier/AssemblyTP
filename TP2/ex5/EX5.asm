@@ -11,7 +11,7 @@ data segment use16
 	mesAdivB   db  "A / B = $"
 	mesReste1   db  " Reste= $"
 	mesReste2   db  " Reste= $"
-	mesBmoiA   db  "					 B - A = $"
+	mesBmoiA   db  "			        B - A = $"
 	mesBdivA   db  "B / A = $"
 	data ends
 ;
@@ -261,7 +261,7 @@ debut:
 	call print_ax
 	pop ax
 	call crlf
-	;
+	;Positionnement du curseur
 	push ax bx cx dx
 	mov ah,03h
 	mov bh,0
@@ -281,7 +281,17 @@ debut:
 	div bx
 	call print_ax
 	push dx
-	call crlf
+	;Positionnement du curseur
+	push ax bx cx dx
+	mov ah,03h
+	mov bh,0
+	int 10h
+	mov ah,02h
+	add dh,1
+	sub dl,12
+	int 10h
+	pop dx cx bx ax
+	;
 	lea dx,mesReste2
 	call so
 	pop dx
